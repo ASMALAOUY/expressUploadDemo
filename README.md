@@ -12,7 +12,11 @@
 ## demo
 
 
-https://github.com/user-attachments/assets/b37853aa-ad66-48d2-9b63-9cfb6ad5ad70
+
+
+https://github.com/user-attachments/assets/1da0fa9d-9da1-41b3-8f27-6f25cf32ddbc
+
+
 ---
 
 ## 🚀 Installation
