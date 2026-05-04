@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload — Multer Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #13161e;
+      --surface2:  #1a1e2a;
+      --border:    #ffffff0f;
+      --border2:   #ffffff1a;
+      --accent:    #4f8ef7;
+      --accent2:   #6ee7b7;
+      --text:      #f0f2f8;
+      --muted:     #6b7280;
+      --danger:    #f87171;
+      --success:   #6ee7b7;
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 20px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, #4f8ef718 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, #6ee7b710 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .header-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #4f8ef712;
+      border: 1px solid #4f8ef730;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+
+    .header-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #f0f2f8 30%, #6b7280);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 300;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 20px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+
+    .card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 0 0 1px #4f8ef710, 0 20px 40px #00000030;
+    }
+
+    /* ── Card header ── */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .icon-blue  { background: #4f8ef715; border: 1px solid #4f8ef730; }
+    .icon-green { background: #6ee7b715; border: 1px solid #6ee7b730; }
+    .icon-amber { background: #fbbf2415; border: 1px solid #fbbf2430; }
+
+    .card-title-wrap h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .card-title-wrap p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .step-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* ── Formulaires ── */
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #9ca3b0;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder { color: var(--muted); }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px #4f8ef720;
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Zone de dépôt ── */
+    .file-drop {
+      position: relative;
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--surface2);
+    }
+
+    .file-drop:hover {
+      border-color: var(--accent);
+      background: #4f8ef708;
+    }
+
+    .file-drop input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .file-drop-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+      display: block;
+      opacity: 0.6;
+    }
+
+    .file-drop-text {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .file-drop-text strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .file-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+      display: block;
+      opacity: 0.7;
+    }
+
+    .preview-name {
+      font-size: 12px;
+      color: var(--accent2);
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* ── Bouton ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+
+    .btn:hover  { opacity: 0.88; }
+    .btn:active { transform: scale(0.97); }
+
+    /* ── Messages ── */
+    .success-message {
+      display: flex; align-items: center; gap: 10px;
+      background: #6ee7b710; border: 1px solid #6ee7b730;
+      color: var(--success); padding: 14px 16px;
+      border-radius: var(--radius-sm); font-size: 14px; margin-bottom: 16px;
+    }
+
+    .error-message {
+      display: flex; align-items: center; gap: 10px;
+      background: #f8717110; border: 1px solid #f8717130;
+      color: var(--danger); padding: 14px 16px;
+      border-radius: var(--radius-sm); font-size: 14px; margin-bottom: 16px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-eyebrow">Express.js &amp; Multer</div>
+      <h1>Téléversement<br>de fichiers</h1>
+      <p>Démo complète — stockage, filtrage, limites et champs mixtes</p>
+    </div>
+
+    <!-- Carte 1 : Upload simple -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-blue">📁</div>
+        <div class="card-title-wrap">
+          <h2>Upload simple</h2>
+          <p>Un seul fichier image — max 5 Mo</p>
+        </div>
+        <span class="step-badge">Étapes 2–6</span>
+      </div>
+      <form action="/upload" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="fichier">Image à téléverser</label>
+          <div class="file-drop">
+            <input type="file" id="fichier" name="fichier"
+                   accept=".jpg,.jpeg,.png,.gif,.webp" required
+                   onchange="showName(this,'name1')">
+            <span class="file-drop-icon">🖼</span>
+            <div class="file-drop-text">
+              <strong>Cliquez</strong> pour choisir une image
+            </div>
+            <span class="file-hint">JPG · PNG · GIF · WebP — max 5 Mo</span>
+          </div>
+          <div class="preview-name" id="name1"></div>
+        </div>
+        <button type="submit" class="btn">⬆ Téléverser</button>
+      </form>
+    </div>
+
+    <!-- Carte 2 : Upload multiple -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-green">🗂</div>
+        <div class="card-title-wrap">
+          <h2>Upload multiple</h2>
+          <p>Jusqu'à 3 images simultanément — max 5 Mo chacune</p>
+        </div>
+        <span class="step-badge">Étape 7</span>
+      </div>
+      <form action="/upload-multiple" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="fichiers">Images à téléverser</label>
+          <div class="file-drop">
+            <input type="file" id="fichiers" name="fichiers"
+                   accept=".jpg,.jpeg,.png,.gif,.webp"
+                   multiple required
+                   onchange="showName(this,'name2')">
+            <span class="file-drop-icon">🖼</span>
+            <div class="file-drop-text">
+              <strong>Cliquez</strong> pour choisir plusieurs images
+            </div>
+            <span class="file-hint">Ctrl / ⌘ pour sélection multiple · max 3 fichiers</span>
+          </div>
+          <div class="preview-name" id="name2"></div>
+        </div>
+        <button type="submit" class="btn">⬆ Téléverser tout</button>
+      </form>
+    </div>
+
+    <!-- Carte 3 : Upload avec métadonnées -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-amber">✏️</div>
+        <div class="card-title-wrap">
+          <h2>Upload avec métadonnées</h2>
+          <p>Titre + description + image principale + galerie</p>
+        </div>
+        <span class="step-badge">Étape 8</span>
+      </div>
+      <form action="/upload-with-data" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="titre">Titre</label>
+          <input type="text" id="titre" name="titre"
+                 placeholder="Ex : Ma photo de vacances" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"
+                    placeholder="Décrivez l'image..."></textarea>
+        </div>
+        <hr>
+        <div class="form-group">
+          <label for="image">Image principale</label>
+          <div class="file-drop">
+            <input type="file" id="image" name="image"
+                   accept=".jpg,.jpeg,.png,.gif,.webp" required
+                   onchange="showName(this,'name3')">
+            <span class="file-drop-icon">🖼</span>
+            <div class="file-drop-text">
+              <strong>Cliquez</strong> pour choisir l'image principale
+            </div>
+            <span class="file-hint">JPG · PNG · GIF · WebP — max 5 Mo</span>
+          </div>
+          <div class="preview-name" id="name3"></div>
+        </div>
+        <div class="form-group">
+          <label for="galerie">
+            Images supplémentaires
+            <span style="color:var(--muted);font-weight:300">(optionnel)</span>
+          </label>
+          <div class="file-drop">
+            <input type="file" id="galerie" name="galerie"
+                   accept=".jpg,.jpeg,.png,.gif,.webp"
+                   multiple
+                   onchange="showName(this,'name4')">
+            <span class="file-drop-icon">🗃</span>
+            <div class="file-drop-text">
+              <strong>Cliquez</strong> pour la galerie
+            </div>
+            <span class="file-hint">Max 2 images supplémentaires</span>
+          </div>
+          <div class="preview-name" id="name4"></div>
+        </div>
+        <button type="submit" class="btn">⬆ Téléverser</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    function showName(input, targetId) {
+      const el = document.getElementById(targetId);
+      const files = Array.from(input.files);
+      if (!files.length) { el.textContent = ''; return; }
+      el.textContent = files.length === 1
+        ? '✓ ' + files[0].name
+        : '✓ ' + files.length + ' fichiers : ' + files.map(f => f.name).join(', ');
+    }
+
+    document.querySelectorAll('.file-drop').forEach(zone => {
+      zone.querySelector('input[type="file"]').addEventListener('change', () => {
+        zone.style.borderColor = 'var(--accent2)';
+        zone.style.background  = '#6ee7b708';
+      });
+    });
+  </script>
+</body>
+</html>
